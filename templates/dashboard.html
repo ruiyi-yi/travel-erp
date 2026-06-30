@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统首页 - 悠享假期订单财务管理系统</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 230px;
+            background: linear-gradient(180deg, #1a1a2e, #16213e);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-header h3 {
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        .sidebar-header small {
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+        .user-info {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: #FF9933;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+        .user-details .name {
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .user-details .role {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 10px 0;
+        }
+        .nav-group {
+            margin-bottom: 5px;
+        }
+        .nav-group-title {
+            padding: 10px 20px 5px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 14px;
+            gap: 10px;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,255,255,0.08);
+            color: #FF9933;
+            border-left-color: #FF9933;
+        }
+        .nav-item .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-footer a {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sidebar-footer a:hover {
+            color: #FF9933;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 230px;
+            flex: 1;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .top-bar h2 {
+            font-size: 18px;
+            color: #333;
+            font-weight: 500;
+        }
+        .top-bar-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .content-area {
+            padding: 25px 30px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .stat-icon.blue { background: #e6f0ff; color: #3366FF; }
+        .stat-icon.green { background: #e6fff0; color: #00CC66; }
+        .stat-icon.orange { background: #fff3e6; color: #FF9933; }
+        .stat-icon.red { background: #ffe6e6; color: #FF3333; }
+        .stat-icon.purple { background: #f3e6ff; color: #9933FF; }
+        .stat-info h3 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .stat-info p {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* Two column layout */
+        .row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .card-header {
+            padding: 18px 25px;
+            border-bottom: 1px solid #f0f0f0;
+            font-weight: 600;
+            font-size: 15px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-body {
+            padding: 20px 25px;
+        }
+        .card-body.no-padding {
+            padding: 0;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        table th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #666;
+            font-size: 12px;
+        }
+        table tr:hover td {
+            background: #fafafa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .badge-success { background: #e6fff0; color: #00AA55; }
+        .badge-warning { background: #fff8e6; color: #CC8800; }
+        .badge-danger { background: #ffe6e6; color: #CC0000; }
+        .badge-info { background: #e6f0ff; color: #3366FF; }
+        .badge-default { background: #f0f0f0; color: #666; }
+
+        /* Chart placeholder */
+        .chart-container {
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            padding: 10px 0;
+        }
+        .chart-bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            height: 100%;
+        }
+        .chart-bars {
+            display: flex;
+            gap: 4px;
+            align-items: flex-end;
+            height: 85%;
+            width: 100%;
+            justify-content: center;
+        }
+        .chart-bar {
+            width: 24px;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.5s;
+            min-height: 4px;
+        }
+        .chart-bar.income { background: linear-gradient(to top, #3366FF, #6699FF); }
+        .chart-bar.expense { background: linear-gradient(to top, #FF6633, #FF9966); }
+        .chart-label {
+            font-size: 10px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 10px; }
+
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .row-2col { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+
+        a { color: #3366FF; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    {% include '_sidebar.html' %}
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2>📊 系统首页 / Dashboard</h2>
+            <div class="top-bar-right">
+                <span>📅 {{ stats.today_date if stats.today_date else '' }}</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">📋</div>
+                    <div class="stat-info">
+                        <h3>{{ stats.total_orders }}</h3>
+                        <p>订单总数</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">⏳</div>
+                    <div class="stat-info">
+                        <h3>{{ stats.pending_orders }}</h3>
+                        <p>待处理订单</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">💰</div>
+                    <div class="stat-info">
+                        <h3>¥{{ '{:,.0f}'.format(stats.monthly_income) }}</h3>
+                        <p>本月收入</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">👥</div>
+                    <div class="stat-info">
+                        <h3>{{ stats.customer_count }}</h3>
+                        <p>客户总数</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- More stats -->
+            <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-icon blue">📅</div>
+                    <div class="stat-info">
+                        <h3>{{ stats.today_orders }}</h3>
+                        <p>今日新增订单</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">💸</div>
+                    <div class="stat-info">
+                        <h3>¥{{ '{:,.0f}'.format(stats.monthly_expense) }}</h3>
+                        <p>本月支出</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">📈</div>
+                    <div class="stat-info">
+                        <h3>¥{{ '{:,.0f}'.format(stats.monthly_profit) }}</h3>
+                        <p>本月利润</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">📌</div>
+                    <div class="stat-info">
+                        <h3>¥{{ '{:,.0f}'.format(stats.total_receivable) }}</h3>
+                        <p>应收账款</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Recent Orders -->
+            <div class="row-2col">
+                <!-- Monthly Trend Chart -->
+                <div class="card">
+                    <div class="card-header">📊 近6个月收支趋势</div>
+                    <div class="card-body">
+                        {% set max_val = namespace(v=1) %}
+                        {% for d in monthly_data %}
+                            {% if d.income > max_val.v %}{% set max_val.v = d.income %}{% endif %}
+                            {% if d.expense > max_val.v %}{% set max_val.v = d.expense %}{% endif %}
+                        {% endfor %}
+                        <div class="chart-container">
+                            {% for d in monthly_data %}
+                            <div class="chart-bar-group">
+                                <div class="chart-bars">
+                                    {% set ih = (d.income / max_val.v * 100)|int if max_val.v > 0 else 0 %}
+                                    {% set eh = (d.expense / max_val.v * 100)|int if max_val.v > 0 else 0 %}
+                                    <div class="chart-bar income" style="height:{{ ih }}%" title="收入: ¥{{ '{:,.0f}'.format(d.income) }}"></div>
+                                    <div class="chart-bar expense" style="height:{{ eh }}%" title="支出: ¥{{ '{:,.0f}'.format(d.expense) }}"></div>
+                                </div>
+                                <div class="chart-label">{{ d.month[5:] }}月</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div style="display:flex; gap:20px; justify-content:center; font-size:12px; color:#999; margin-top:10px;">
+                            <span>🟦 收入</span><span>🟥 支出</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="card">
+                    <div class="card-header">
+                        最近订单
+                        <a href="{{ url_for('order_list', ym=ym) }}" style="font-size:12px;font-weight:400;">查看全部 →</a>
+                    </div>
+                    <div class="card-body no-padding">
+                        {% if recent_orders %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>订单号</th>
+                                    <th>客户</th>
+                                    <th>目的地</th>
+                                    <th>金额</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for o in recent_orders[:8] %}
+                                <tr>
+                                    <td><a href="{{ url_for('order_view', oid=o.id, ym=ym) }}">{{ o.order_no }}</a></td>
+                                    <td>{{ o.customer_name }}</td>
+                                    <td>{{ o.destination }}</td>
+                                    <td>¥{{ '{:,.0f}'.format(o.total_amount) }}</td>
+                                    <td>
+                                        {% if o.order_status == 'confirmed' %}
+                                        <span class="badge badge-success">已确认</span>
+                                        {% elif o.order_status == 'in_progress' %}
+                                        <span class="badge badge-info">进行中</span>
+                                        {% elif o.order_status == 'completed' %}
+                                        <span class="badge badge-default">已完成</span>
+                                        {% elif o.order_status == 'cancelled' %}
+                                        <span class="badge badge-danger">已取消</span>
+                                        {% else %}
+                                        <span class="badge badge-warning">待处理</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="empty-state">
+                            <div class="icon">📋</div>
+                            <p>暂无订单数据</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

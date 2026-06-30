@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>员工管理 - 悠享假期</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f0f2f5;display:flex;min-height:100vh}
+.sidebar{width:230px;background:linear-gradient(180deg,#1a1a2e,#16213e);color:#fff;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+.sidebar-header{padding:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-header h3{font-size:16px;letter-spacing:2px}.sidebar-header small{color:rgba(255,255,255,.5);font-size:11px}
+.user-info{padding:15px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+.user-avatar{width:36px;height:36px;background:#FF9933;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+.user-details .name{font-size:13px}.user-details .role{font-size:11px;color:rgba(255,255,255,.5)}
+.nav-menu{flex:1;padding:10px 0}.nav-group-title{padding:10px 20px 5px;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px}
+.nav-item{display:flex;align-items:center;padding:12px 20px;color:rgba(255,255,255,.7);text-decoration:none;gap:10px;font-size:14px;border-left:3px solid transparent}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,.08);color:#FF9933;border-left-color:#FF9933}
+.sidebar-footer{padding:15px 20px;border-top:1px solid rgba(255,255,255,.1)}.sidebar-footer a{color:rgba(255,255,255,.5);text-decoration:none;font-size:12px}
+.main-content{margin-left:230px;flex:1}
+.top-bar{background:#fff;padding:15px 30px;border-bottom:1px solid #e8e8e8;display:flex;justify-content:space-between;align-items:center}.top-bar h2{font-size:18px;color:#333}
+.content-area{padding:25px 30px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}.card-header{padding:18px 25px;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:15px}.card-body{padding:20px 25px}.card-body.no-padding{padding:0}
+table{width:100%;border-collapse:collapse}table th,table td{padding:10px 12px;text-align:left;border-bottom:1px solid #f0f0f0;font-size:13px}table th{background:#fafafa;font-weight:600;color:#666;font-size:12px}table tr:hover td{background:#fafafa}
+.empty-state{text-align:center;padding:40px;color:#999}
+</style></head>
+<body>
+{% include '_sidebar.html' %}
+<div class="main-content">
+<div class="top-bar"><h2>👷 员工管理</h2></div>
+<div class="content-area">
+<div class="card"><div class="card-header">员工列表 (共 {{ employees|length }} 人)</div>
+<div class="card-body no-padding" style="overflow-x:auto">
+{% if employees %}
+<table><thead><tr><th>姓名</th><th>职位</th><th>用户名</th><th>电话</th><th>手机</th><th>QQ</th><th>登录次数</th></tr></thead><tbody>
+{% for e in employees %}
+<tr><td>{{ e.real_name }}</td><td>{{ e.position or '-' }}</td><td>{{ e.username or '-' }}</td><td>{{ e.phone or '-' }}</td><td>{{ e.mobile or '-' }}</td><td>{{ e.qq or '-' }}</td><td>{{ e.login_count }}</td></tr>
+{% endfor %}</tbody></table>
+{% else %}<div class="empty-state">暂无员工</div>{% endif %}
+</div></div></div></div>
+</body></html>

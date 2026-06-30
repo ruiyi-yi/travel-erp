@@ -1,0 +1,28 @@
+# Database
+data/*.db
+*.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (contains secrets)
+.env
+config.local.py
+
+# Logs
+*.log

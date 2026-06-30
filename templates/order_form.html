@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ '编辑订单' if order else '新增订单' }} - 悠享假期</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f0f2f5;display:flex;min-height:100vh}
+        .sidebar{width:230px;background:linear-gradient(180deg,#1a1a2e,#16213e);color:#fff;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+        .sidebar-header{padding:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)}
+        .sidebar-header h3{font-size:16px;letter-spacing:2px;margin-bottom:5px}
+        .sidebar-header small{color:rgba(255,255,255,.5);font-size:11px}
+        .user-info{padding:15px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+        .user-avatar{width:36px;height:36px;background:#FF9933;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+        .user-details .name{font-size:13px}.user-details .role{font-size:11px;color:rgba(255,255,255,.5)}
+        .nav-menu{flex:1;padding:10px 0}
+        .nav-group-title{padding:10px 20px 5px;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px}
+        .nav-item{display:flex;align-items:center;padding:12px 20px;color:rgba(255,255,255,.7);text-decoration:none;gap:10px;font-size:14px;border-left:3px solid transparent}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.08);color:#FF9933;border-left-color:#FF9933}
+        .sidebar-footer{padding:15px 20px;border-top:1px solid rgba(255,255,255,.1)}
+        .sidebar-footer a{color:rgba(255,255,255,.5);text-decoration:none;font-size:12px}
+        .sidebar-footer a:hover{color:#FF9933}
+        .main-content{margin-left:230px;flex:1}
+        .top-bar{background:#fff;padding:15px 30px;border-bottom:1px solid #e8e8e8;display:flex;justify-content:space-between;align-items:center}
+        .top-bar h2{font-size:18px;color:#333;font-weight:500}
+        .content-area{padding:25px 30px}
+        .card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+        .card-header{padding:18px 25px;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:15px}
+        .card-body{padding:25px}
+        .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+        .form-group label{display:block;margin-bottom:6px;color:#555;font-size:13px;font-weight:500}
+        .form-group input,.form-group select,.form-group textarea{width:100%;height:40px;border:1px solid #ddd;border-radius:6px;padding:0 12px;font-size:13px;outline:none;transition:border-color .2s}
+        .form-group textarea{height:80px;padding:10px 12px;resize:vertical}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#FF9933;box-shadow:0 0 0 3px rgba(255,153,51,.1)}
+        .form-actions{padding:20px 0;display:flex;gap:10px}
+        .btn{padding:10px 24px;border:none;border-radius:6px;cursor:pointer;font-size:14px;text-decoration:none;display:inline-block}
+        .btn-primary{background:#FF9933;color:#fff}.btn-primary:hover{background:#FF8833}
+        .btn-outline{border:1px solid #ddd;background:#fff;color:#666}
+        .section-title{font-size:14px;font-weight:600;color:#333;margin:20px 0 15px;padding-bottom:10px;border-bottom:1px solid #f0f0f0;grid-column:1/-1}
+        @media(max-width:900px){.form-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    {% include '_sidebar.html' %}
+    <div class="main-content">
+        <div class="top-bar">
+            <h2>{{ '✏️ 编辑订单' if order else '➕ 新增订单' }}</h2>
+            <a href="{{ url_for('order_list', ym=ym) }}" class="btn btn-outline">← 返回列表</a>
+        </div>
+        <div class="content-area">
+            <div class="card">
+                <div class="card-header">{{ '编辑订单' if order else '新增订单' }} - 请填写订单信息</div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="form-grid">
+                            {% if order %}<div class="form-group"><label>订单号</label><input value="{{ order.order_no }}" disabled style="background:#f5f5f5"></div>{% endif %}
+                            <div class="form-group"><label>客户姓名 *</label><input type="text" name="customer_name" value="{{ order.customer_name if order else '' }}" required></div>
+                            <div class="form-group"><label>联系电话</label><input type="text" name="contact_phone" value="{{ order.contact_phone if order else '' }}"></div>
+                            <div class="form-group"><label>产品名称 *</label>
+                                <select name="product_name">
+                                    <option value="">请选择</option>
+                                    {% for p in ['自由行','跟团游','半自助','定制游','亲子游','蜜月游','商务考察','邮轮游'] %}
+                                    <option value="{{ p }}" {{ 'selected' if order and order.product_name==p }}>{{ p }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group"><label>目的地</label><input type="text" name="destination" value="{{ order.destination if order else '' }}"></div>
+                            <div class="form-group"><label>出发日期</label><input type="date" name="departure_date" value="{{ order.departure_date if order else '' }}"></div>
+                            <div class="form-group"><label>返回日期</label><input type="date" name="return_date" value="{{ order.return_date if order else '' }}"></div>
+                            <div class="form-group"><label>总人数</label><input type="number" name="people_count" value="{{ order.people_count if order else 1 }}" min="1"></div>
+                            <div class="form-group"><label>成人</label><input type="number" name="adult_count" value="{{ order.adult_count if order else 1 }}" min="0"></div>
+                            <div class="form-group"><label>儿童</label><input type="number" name="child_count" value="{{ order.child_count if order else 0 }}" min="0"></div>
+
+                            <div class="section-title">💰 价格信息</div>
+                            <div class="form-group"><label>单价 (元)</label><input type="number" name="unit_price" value="{{ order.unit_price if order else 0 }}" step="0.01"></div>
+                            <div class="form-group"><label>总金额 (元)</label><input type="number" name="total_amount" id="total_amount" value="{{ order.total_amount if order else 0 }}" step="0.01"></div>
+                            <div class="form-group"><label>优惠金额 (元)</label><input type="number" name="discount" value="{{ order.discount if order else 0 }}" step="0.01"></div>
+                            <div class="form-group"><label>已付金额 (元)</label><input type="number" name="paid_amount" value="{{ order.paid_amount if order else 0 }}" step="0.01"></div>
+
+                            <div class="section-title">📌 状态信息</div>
+                            <div class="form-group"><label>订单状态</label>
+                                <select name="order_status">
+                                    {% for s in [('pending','待处理'),('confirmed','已确认'),('in_progress','进行中'),('completed','已完成'),('cancelled','已取消')] %}
+                                    <option value="{{ s[0] }}" {{ 'selected' if order and order.order_status==s[0] }}>{{ s[1] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group"><label>付款状态</label>
+                                <select name="payment_status">
+                                    {% for s in [('unpaid','未付款'),('partial','部分付款'),('paid','已付清')] %}
+                                    <option value="{{ s[0] }}" {{ 'selected' if order and order.payment_status==s[0] }}>{{ s[1] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="section-title">📝 其他信息</div>
+                            <div class="form-group"><label>紧急联系人</label><input type="text" name="emergency_contact" value="{{ order.emergency_contact if order else '' }}"></div>
+                            <div class="form-group"><label>紧急电话</label><input type="text" name="emergency_phone" value="{{ order.emergency_phone if order else '' }}"></div>
+                            <div class="form-group"><label>保险信息</label><input type="text" name="insurance_info" value="{{ order.insurance_info if order else '' }}"></div>
+                            <div class="form-group" style="grid-column:1/-1"><label>特殊需求</label><textarea name="special_requirements">{{ order.special_requirements if order else '' }}</textarea></div>
+                            <div class="form-group" style="grid-column:1/-1"><label>备注</label><textarea name="notes">{{ order.notes if order else '' }}</textarea></div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">💾 保存订单</button>
+                            <a href="{{ url_for('order_list', ym=ym) }}" class="btn btn-outline">取消</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

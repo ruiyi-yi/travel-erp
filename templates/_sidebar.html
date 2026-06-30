@@ -1,0 +1,79 @@
+<!-- Sidebar Navigation -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3>✈ 悠享假期</h3>
+        <small>订单财务管理系统</small>
+    </div>
+
+    <div class="user-info">
+        <div class="user-avatar">{{ (session.get('real_name', 'U') or 'U')[0] }}</div>
+        <div class="user-details">
+            <div class="name">{{ session.get('real_name', '用户') }}</div>
+            <div class="role">{{ '管理员' if session.get('role') == 'admin' else '员工' }}</div>
+        </div>
+    </div>
+
+    <nav class="nav-menu">
+        <div class="nav-group">
+            <div class="nav-group-title">主菜单</div>
+            <a href="{{ url_for('dashboard', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }}">
+                <span class="nav-icon">📊</span> 系统首页
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-group-title">业务管理</div>
+            <a href="{{ url_for('order_list', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'order_list' }}">
+                <span class="nav-icon">📋</span> 订单管理
+            </a>
+            <a href="{{ url_for('order_add', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'order_add' }}">
+                <span class="nav-icon">➕</span> 新增订单
+            </a>
+            <a href="{{ url_for('customer_list', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'customer_list' }}">
+                <span class="nav-icon">👥</span> 客户管理
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-group-title">财务管理</div>
+            <a href="{{ url_for('finance_list', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'finance_list' }}">
+                <span class="nav-icon">💰</span> 财务流水
+            </a>
+            <a href="{{ url_for('debt_check', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'debt_check' }}">
+                <span class="nav-icon">📌</span> 查欠款
+            </a>
+            <a href="{{ url_for('reports', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'reports' }}">
+                <span class="nav-icon">📈</span> 统计报表
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-group-title">资源管理</div>
+            <a href="{{ url_for('supplier_list', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'supplier_list' }}">
+                <span class="nav-icon">🏭</span> 供应商管理
+            </a>
+            <a href="{{ url_for('product_list', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'product_list' }}">
+                <span class="nav-icon">📦</span> 旅游产品库
+            </a>
+            <a href="{{ url_for('employee_list', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'employee_list' }}">
+                <span class="nav-icon">👷</span> 员工管理
+            </a>
+            <a href="{{ url_for('blacklist', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'blacklist' }}">
+                <span class="nav-icon">🚫</span> 游客黑名单
+            </a>
+        </div>
+
+        {% if session.get('role') == 'admin' %}
+        <div class="nav-group">
+            <div class="nav-group-title">系统管理</div>
+            <a href="{{ url_for('user_list', ym=ym) }}" class="nav-item {{ 'active' if request.endpoint == 'user_list' }}">
+                <span class="nav-icon">⚙️</span> 用户管理
+            </a>
+        </div>
+        {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="{{ url_for('logout', ym=ym) }}">🚪 退出登录</a>
+    </div>
+</div>

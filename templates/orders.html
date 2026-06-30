@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单管理 - 悠享假期</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f0f2f5;display:flex;min-height:100vh}
+        .sidebar{width:230px;background:linear-gradient(180deg,#1a1a2e,#16213e);color:#fff;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+        .sidebar-header{padding:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)}
+        .sidebar-header h3{font-size:16px;letter-spacing:2px;margin-bottom:5px}
+        .sidebar-header small{color:rgba(255,255,255,.5);font-size:11px}
+        .user-info{padding:15px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+        .user-avatar{width:36px;height:36px;background:#FF9933;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+        .user-details .name{font-size:13px}.user-details .role{font-size:11px;color:rgba(255,255,255,.5)}
+        .nav-menu{flex:1;padding:10px 0}
+        .nav-group-title{padding:10px 20px 5px;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px}
+        .nav-item{display:flex;align-items:center;padding:12px 20px;color:rgba(255,255,255,.7);text-decoration:none;gap:10px;font-size:14px;border-left:3px solid transparent}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.08);color:#FF9933;border-left-color:#FF9933}
+        .sidebar-footer{padding:15px 20px;border-top:1px solid rgba(255,255,255,.1)}
+        .sidebar-footer a{color:rgba(255,255,255,.5);text-decoration:none;font-size:12px}
+        .sidebar-footer a:hover{color:#FF9933}
+        .main-content{margin-left:230px;flex:1}
+        .top-bar{background:#fff;padding:15px 30px;border-bottom:1px solid #e8e8e8;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
+        .top-bar h2{font-size:18px;color:#333;font-weight:500}
+        .content-area{padding:25px 30px}
+        .card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px}
+        .card-header{padding:18px 25px;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+        .card-body{padding:20px 25px}
+        .card-body.no-padding{padding:0}
+        table{width:100%;border-collapse:collapse}
+        table th,table td{padding:10px 12px;text-align:left;border-bottom:1px solid #f0f0f0;font-size:13px;white-space:nowrap}
+        table th{background:#fafafa;font-weight:600;color:#666;font-size:12px}
+        table tr:hover td{background:#fafafa}
+        .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500}
+        .badge-success{background:#e6fff0;color:#00AA55}.badge-warning{background:#fff8e6;color:#CC8800}
+        .badge-danger{background:#ffe6e6;color:#CC0000}.badge-info{background:#e6f0ff;color:#3366FF}
+        .badge-default{background:#f0f0f0;color:#666}
+        .btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;text-decoration:none;display:inline-block}
+        .btn-primary{background:#FF9933;color:#fff}.btn-primary:hover{background:#FF8833}
+        .btn-sm{padding:5px 10px;font-size:11px}
+        .btn-danger{background:#FF4444;color:#fff}.btn-outline{border:1px solid #ddd;background:#fff;color:#666}
+        .search-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+        .search-bar input,.search-bar select{height:38px;border:1px solid #ddd;border-radius:6px;padding:0 12px;font-size:13px;outline:none}
+        .search-bar input:focus,.search-bar select:focus{border-color:#FF9933}
+        .pagination{display:flex;justify-content:center;gap:5px;margin-top:20px}
+        .pagination a,.pagination span{padding:8px 14px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-decoration:none;color:#666}
+        .pagination a:hover{background:#FF9933;color:#fff;border-color:#FF9933}
+        .pagination .current{background:#FF9933;color:#fff;border-color:#FF9933}
+        .empty-state{text-align:center;padding:40px;color:#999}
+        .amount{font-weight:600;color:#FF6600}
+        a{color:#3366FF;text-decoration:none}
+        a:hover{text-decoration:underline}
+    </style>
+</head>
+<body>
+    {% include '_sidebar.html' %}
+    <div class="main-content">
+        <div class="top-bar">
+            <h2>📋 订单管理</h2>
+            <a href="{{ url_for('order_add', ym=ym) }}" class="btn btn-primary">+ 新增订单</a>
+        </div>
+        <div class="content-area">
+            <div class="card">
+                <div class="card-header">
+                    <span>订单列表 (共 {{ total }} 条)</span>
+                    <form class="search-bar" method="get">
+                        <input type="text" name="search" value="{{ search }}" placeholder="订单号/客户/目的地...">
+                        <select name="status">
+                            <option value="">全部状态</option>
+                            <option value="pending" {{ 'selected' if status=='pending' }}>待处理</option>
+                            <option value="confirmed" {{ 'selected' if status=='confirmed' }}>已确认</option>
+                            <option value="in_progress" {{ 'selected' if status=='in_progress' }}>进行中</option>
+                            <option value="completed" {{ 'selected' if status=='completed' }}>已完成</option>
+                            <option value="cancelled" {{ 'selected' if status=='cancelled' }}>已取消</option>
+                        </select>
+                        <select name="pay_status">
+                            <option value="">付款状态</option>
+                            <option value="paid" {{ 'selected' if pay_status=='paid' }}>已付清</option>
+                            <option value="partial" {{ 'selected' if pay_status=='partial' }}>部分付款</option>
+                            <option value="unpaid" {{ 'selected' if pay_status=='unpaid' }}>未付款</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">搜索</button>
+                        <a href="{{ url_for('order_list', ym=ym) }}" class="btn btn-outline btn-sm">重置</a>
+                    </form>
+                </div>
+                <div class="card-body no-padding" style="overflow-x:auto">
+                    {% if orders %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>订单号</th><th>客户</th><th>产品</th><th>目的地</th>
+                                <th>出发日期</th><th>人数</th><th>金额</th><th>已付</th><th>欠款</th>
+                                <th>订单状态</th><th>付款状态</th><th>销售</th><th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in orders %}
+                            <tr>
+                                <td><a href="{{ url_for('order_view', oid=o.id, ym=ym) }}">{{ o.order_no }}</a></td>
+                                <td>{{ o.customer_name }}</td>
+                                <td>{{ o.product_name }}</td>
+                                <td>{{ o.destination }}</td>
+                                <td>{{ o.departure_date }}</td>
+                                <td>{{ o.people_count }}</td>
+                                <td class="amount">¥{{ '{:,.0f}'.format(o.total_amount) }}</td>
+                                <td>¥{{ '{:,.0f}'.format(o.paid_amount) }}</td>
+                                <td style="color:{{ 'red' if o.balance > 0 else 'green' }}">¥{{ '{:,.0f}'.format(o.balance) }}</td>
+                                <td>
+                                    {% if o.order_status=='confirmed' %}<span class="badge badge-success">已确认</span>
+                                    {% elif o.order_status=='in_progress' %}<span class="badge badge-info">进行中</span>
+                                    {% elif o.order_status=='completed' %}<span class="badge badge-default">已完成</span>
+                                    {% elif o.order_status=='cancelled' %}<span class="badge badge-danger">已取消</span>
+                                    {% else %}<span class="badge badge-warning">待处理</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if o.payment_status=='paid' %}<span class="badge badge-success">已付清</span>
+                                    {% elif o.payment_status=='partial' %}<span class="badge badge-warning">部分付</span>
+                                    {% else %}<span class="badge badge-danger">未付</span>{% endif %}
+                                </td>
+                                <td>{{ o.sales_person }}</td>
+                                <td>
+                                    <a href="{{ url_for('order_view', oid=o.id, ym=ym) }}" class="btn btn-outline btn-sm">查看</a>
+                                    <a href="{{ url_for('order_edit', oid=o.id, ym=ym) }}" class="btn btn-outline btn-sm">编辑</a>
+                                    <a href="#" onclick="deleteOrder({{ o.id }})" class="btn btn-danger btn-sm">删除</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state"><p>📋 暂无订单数据</p><a href="{{ url_for('order_add', ym=ym) }}">点击新增订单</a></div>
+                    {% endif %}
+                </div>
+            </div>
+            {% if total > per_page %}
+            <div class="pagination">
+                {% for p in range(1, (total // per_page) + 2) %}
+                <a href="?page={{ p }}&search={{ search }}&status={{ status }}&pay_status={{ pay_status }}" class="{{ 'current' if p == page }}">{{ p }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+    function deleteOrder(id) {
+        if (confirm('确定要删除此订单吗？此操作不可恢复。')) {
+            fetch('{{ url_for("order_delete", oid=0, ym=ym) }}'.replace('0', id), {method:'POST'})
+                .then(r => r.json()).then(d => { if(d.success) location.reload(); else alert('删除失败'); });
+        }
+    }
+    </script>
+</body>
+</html>

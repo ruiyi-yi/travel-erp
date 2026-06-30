@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户管理 - 悠享假期</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f0f2f5;display:flex;min-height:100vh}
+.sidebar{width:230px;background:linear-gradient(180deg,#1a1a2e,#16213e);color:#fff;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+.sidebar-header{padding:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)}.sidebar-header h3{font-size:16px;letter-spacing:2px}.sidebar-header small{color:rgba(255,255,255,.5);font-size:11px}
+.user-info{padding:15px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+.user-avatar{width:36px;height:36px;background:#FF9933;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+.user-details .name{font-size:13px}.user-details .role{font-size:11px;color:rgba(255,255,255,.5)}
+.nav-menu{flex:1;padding:10px 0}.nav-group-title{padding:10px 20px 5px;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px}
+.nav-item{display:flex;align-items:center;padding:12px 20px;color:rgba(255,255,255,.7);text-decoration:none;gap:10px;font-size:14px;border-left:3px solid transparent}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,.08);color:#FF9933;border-left-color:#FF9933}
+.sidebar-footer{padding:15px 20px;border-top:1px solid rgba(255,255,255,.1)}.sidebar-footer a{color:rgba(255,255,255,.5);text-decoration:none;font-size:12px}
+.main-content{margin-left:230px;flex:1}
+.top-bar{background:#fff;padding:15px 30px;border-bottom:1px solid #e8e8e8;display:flex;justify-content:space-between;align-items:center}.top-bar h2{font-size:18px;color:#333}
+.content-area{padding:25px 30px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}.card-header{padding:18px 25px;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:center}.card-body{padding:20px 25px}.card-body.no-padding{padding:0}
+table{width:100%;border-collapse:collapse}table th,table td{padding:10px 12px;text-align:left;border-bottom:1px solid #f0f0f0;font-size:13px}table th{background:#fafafa;font-weight:600;color:#666;font-size:12px}table tr:hover td{background:#fafafa}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500}
+.badge-primary{background:#e6f0ff;color:#3366FF}.badge-default{background:#f0f0f0;color:#666}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;text-decoration:none;display:inline-block}
+.btn-primary{background:#FF9933;color:#fff}.btn-sm{padding:5px 10px;font-size:11px}.btn-outline{border:1px solid #ddd;background:#fff;color:#666}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:center}
+.modal{background:#fff;border-radius:12px;padding:30px;width:450px;max-width:90%}.modal h3{margin-bottom:20px}
+.form-group{margin-bottom:15px}.form-group label{display:block;margin-bottom:5px;font-size:13px;color:#555}
+.form-group input,.form-group select{width:100%;height:38px;border:1px solid #ddd;border-radius:6px;padding:0 10px;font-size:13px;outline:none}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+</style></head>
+<body>
+{% include '_sidebar.html' %}
+<div class="main-content">
+<div class="top-bar"><h2>⚙️ 用户管理</h2><a href="#" onclick="showModal()" class="btn btn-primary">+ 新增用户</a></div>
+<div class="content-area">
+<div class="card"><div class="card-header">系统用户列表</div>
+<div class="card-body no-padding" style="overflow-x:auto">
+{% if users %}
+<table><thead><tr><th>ID</th><th>用户名</th><th>姓名</th><th>角色</th><th>电话</th><th>邮箱</th><th>最后登录</th><th>创建时间</th><th>操作</th></tr></thead><tbody>
+{% for u in users %}
+<tr>
+<td>{{ u.id }}</td><td>{{ u.username }}</td><td>{{ u.real_name or '-' }}</td>
+<td>{% if u.role=='admin' %}<span class="badge badge-primary">管理员</span>{% else %}<span class="badge badge-default">员工</span>{% endif %}</td>
+<td>{{ u.phone or '-' }}</td><td>{{ u.email or '-' }}</td><td>{{ u.last_login or '-' }}</td><td>{{ u.created_at[:10] if u.created_at else '-' }}</td>
+<td><a href="#" onclick="resetPassword({{ u.id }})" class="btn btn-outline btn-sm">重置密码</a></td>
+</tr>{% endfor %}</tbody></table>
+{% else %}<div style="text-align:center;padding:40px;color:#999">暂无用户数据</div>{% endif %}
+</div></div></div></div>
+
+<div class="modal-overlay" id="userModal">
+<div class="modal"><h3>新增用户</h3>
+<form method="post" action="{{ url_for('user_add', ym=ym) }}">
+<div class="form-group"><label>用户名 *</label><input type="text" name="username" required></div>
+<div class="form-group"><label>密码 *</label><input type="password" name="password" value="123456" required></div>
+<div class="form-group"><label>姓名</label><input type="text" name="real_name"></div>
+<div class="form-group"><label>角色</label><select name="role"><option value="staff">员工</option><option value="admin">管理员</option></select></div>
+<div class="form-group"><label>电话</label><input type="text" name="phone"></div>
+<div class="form-group"><label>邮箱</label><input type="email" name="email"></div>
+<div class="modal-actions"><button type="button" class="btn btn-outline" onclick="hideModal()">取消</button><button type="submit" class="btn btn-primary">保存</button></div>
+</form></div></div>
+<script>
+function showModal(){document.getElementById('userModal').style.display='flex'}
+function hideModal(){document.getElementById('userModal').style.display='none'}
+function resetPassword(id){if(confirm('确定重置密码为 123456？')){fetch('{{ url_for("user_reset_password", uid=0, ym=ym) }}'.replace('0',id),{method:'POST'}).then(r=>r.json()).then(d=>{alert(d.message||'重置成功')})}}
+</script>
+</body>
+</html>

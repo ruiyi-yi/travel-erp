@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台登录 - 悠享假期订单财务管理系统</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        /* Animated background */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 40px,
+                rgba(255,255,255,.02) 40px,
+                rgba(255,255,255,.02) 80px
+            );
+            animation: bgMove 30s linear infinite;
+        }
+        @keyframes bgMove {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 440px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-header .icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #FF9933, #FF6600);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+        }
+        .login-header h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 5px;
+            letter-spacing: 3px;
+        }
+        .login-header p {
+            color: #999;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            height: 44px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 0 15px;
+            font-size: 14px;
+            transition: all 0.3s;
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: #FF9933;
+            box-shadow: 0 0 0 3px rgba(255,153,51,0.1);
+        }
+
+        .captcha-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .captcha-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .captcha-img {
+            height: 44px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn-login {
+            width: 100%;
+            height: 46px;
+            background: linear-gradient(135deg, #FF9933, #FF6600);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 3px;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .btn-login:hover {
+            background: linear-gradient(135deg, #FFAD33, #FF8833);
+            box-shadow: 0 5px 20px rgba(255,153,51,0.4);
+            transform: translateY(-1px);
+        }
+
+        .error-msg {
+            background: #FFF0F0;
+            color: #CC0000;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #FFCCCC;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                width: 90%;
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="icon">✈</div>
+            <h2>悠享假期</h2>
+            <p>订单财务管理系统</p>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('login', ym=ym) }}" onsubmit="return checkLogin()">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" name="uid" id="uid" placeholder="请输入用户名" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" name="pwd" id="pwd" placeholder="请输入密码">
+            </div>
+
+            <div class="captcha-row">
+                <div class="form-group">
+                    <label>验证码</label>
+                    <input type="text" name="vpwd" id="vpwd" placeholder="验证码" maxlength="4" autocomplete="off" style="text-transform:uppercase">
+                </div>
+                <img src="{{ url_for('captcha') }}" class="captcha-img" onclick="this.src='{{ url_for('captcha') }}?'+Math.random()" title="点击刷新验证码">
+            </div>
+            <p style="font-size:11px;color:#999;margin-top:3px;">验证码不区分大小写 · 点击图片刷新</p>
+
+            <button type="submit" class="btn-login">登 录</button>
+        </form>
+
+        <p class="footer-text">悠享假期 © 2024 订单财务管理系统</p>
+    </div>
+
+    <script>
+    function checkLogin() {
+        var uid = document.getElementById('uid').value.trim();
+        var pwd = document.getElementById('pwd').value.trim();
+        var vpwd = document.getElementById('vpwd').value.trim();
+        if (uid === '') {
+            alert('用户名不能为空！');
+            document.getElementById('uid').focus();
+            return false;
+        }
+        if (pwd === '') {
+            alert('密码不能为空！');
+            document.getElementById('pwd').focus();
+            return false;
+        }
+        if (vpwd === '') {
+            alert('请输入验证码！');
+            document.getElementById('vpwd').focus();
+            return false;
+        }
+        return true;
+    }
+    </script>
+</body>
+</html>
