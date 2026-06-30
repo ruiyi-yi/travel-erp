@@ -161,4 +161,4 @@ MIT License — 仅供学习参考，请勿直接用于商业用途。
 
 ---
 
-*Built with ❤️ by [Your Name] — 2024*
+*Built with ❤️ by [YYY_leh] — 2026
