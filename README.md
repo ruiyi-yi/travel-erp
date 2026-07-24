@@ -1,4 +1,4 @@
-#  悠享假期 — 旅行社ERP订单财务管理系统
+旅行社ERP订单财务管理系统
 
 > **Travel Agency Order & Financial Management ERP System**
 
